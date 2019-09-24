@@ -1,4 +1,4 @@
-# flink的三种时间
+# flink的三种时间以及生成watermark的两种方式
 
 - **event time**:事件时间是每个事件在其生产设备上发生的时间。该时间通常在它们进入Flink之前嵌入到记录中，并且可以从每个记录中提取事件时间戳。在事件时间中，时间的进度取决于数据，而不取决于任何挂钟（系统时间）。事件时间程序必须指定如何生成事件时间水印，这是信号事件时间进展的机制。
 
@@ -16,4 +16,37 @@
 
   摄取时间从概念上讲介于事件时间和处理时间之间。 与处理时间相比，它的使用成本更高一些，但结果却更可预测。 由于摄取时间使用稳定的时间戳（在源处分配了一次），因此对记录的不同窗口操作将引用相同的时间戳，而在处理时间中，每个窗口操作员都可以将记录分配给不同的窗口（基于本地系统时钟和任何运输延误）。
 **三种时间的概念如图所示**：
-![flink time](times_clocks.png)
+![flink time](time_clock.png)
+
+## watermark生成的两种方式
+
+- 定期生成watermark的方式:
+
+  想要定期生成watermark,需要给让自定义类实现AssignerWithPeriodicWatermarks接口，重写extractTimestamp（提取时间戳）和getCurrentWatermark（生成watermark）这两个方法。分配时间戳并定期生成水印。通过ExecutionConfig.setAutoWatermarkInterval（...）定义生成水印的时间间隔（每n毫秒）。 每次都会调用分配者的getCurrentWatermark（）方法，如果返回的水印非空且大于前一个水印，则将发出新的水印。
+
+  ```java
+  public class MyTimestampAndWatermarkGenerator implements AssignerWithPeriodicWatermarks<String> {
+  
+          private long maxOutOfOrderness = 3500; // 3.5 seconds
+          private long currentMaxTimestamp;
+  
+          @Nullable
+          @Override
+          public Watermark getCurrentWatermark() {
+              return new Watermark(currentMaxTimestamp - maxOutOfOrderness);
+          }
+  
+          @Override
+          public long extractTimestamp(String element, long previousElementTimestamp) {
+              JSONObject jsonObject = JSON.parseObject(element);
+              long create_time = Long.parseLong(jsonObject.get("create_time").toString());
+              if (create_time > currentMaxTimestamp) {
+                  currentMaxTimestamp = create_time;
+              }
+              return create_time;
+          }
+      }
+  ```
+
+
+
