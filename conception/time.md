@@ -23,8 +23,7 @@
 - 定期生成watermark的方式:
 
   想要定期生成watermark,需要给让自定义类实现AssignerWithPeriodicWatermarks接口，重写extractTimestamp（提取时间戳）和getCurrentWatermark（生成watermark）这两个方法。分配时间戳并定期生成水印。通过ExecutionConfig.setAutoWatermarkInterval（...）定义生成水印的时间间隔（每n毫秒）。 每次都会调用分配者的getCurrentWatermark（）方法，如果返回的水印非空且大于前一个水印，则将发出新的水印。
-
-  ```java
+```java
   public class MyTimestampAndWatermarkGenerator implements AssignerWithPeriodicWatermarks<String> {
   
           private long maxOutOfOrderness = 3500; // 3.5 seconds
@@ -46,7 +45,7 @@
               return create_time;
           }
       }
-  ```
+```
 - 根据数据源的特殊标记生成watermark
 要根据数据源的特殊标记生成watermark生成新的水印时生成水印，需使用AssignerWithPunctuatedWatermarks。 对于此类，Flink将首先调用extractTimestamp（...）方法为该元素分配时间戳，然后立即在该元素上调用checkAndGetNextWatermark（...）方法。
 ```
