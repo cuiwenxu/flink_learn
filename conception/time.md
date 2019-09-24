@@ -47,6 +47,20 @@
           }
       }
   ```
+- 根据数据源的特殊标记生成watermark
+要根据数据源的特殊标记生成watermark生成新的水印时生成水印，需使用AssignerWithPunctuatedWatermarks。 对于此类，Flink将首先调用extractTimestamp（...）方法为该元素分配时间戳，然后立即在该元素上调用checkAndGetNextWatermark（...）方法。
+```
+public class PunctuatedAssigner implements AssignerWithPunctuatedWatermarks<MyEvent> {
 
+	@Override
+	public long extractTimestamp(MyEvent element, long previousElementTimestamp) {
+		return element.getCreationTime();
+	}
 
+	@Override
+	public Watermark checkAndGetNextWatermark(MyEvent lastElement, long extractedTimestamp) {
+		return lastElement.hasWatermarkMarker() ? new Watermark(extractedTimestamp) : null;
+	}
+}
+```
 
