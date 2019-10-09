@@ -1,4 +1,4 @@
-#window
+# window
 
 - watermark和window的关系：**watermark是数据流的特性**，watermark是从数据流中extract timestamp，然后根据ExecutionConfig类中autoWatermarkInterval来定期生成的，**因其来自于数据流，所以是数据流自身的特性**，而窗口则不是数据流本身的，打个比方，watermark是流水线的产品附带的属性的话，window就是负责操作流水线的机器的属性。下面是flink官方文档的解释
 
