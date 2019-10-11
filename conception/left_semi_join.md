@@ -1,3 +1,5 @@
+
+
 # left semi join和join实现子查询性能对比
 
 - left semi join
@@ -18,3 +20,7 @@ from dw.dim_brand_business_info_current
 ) b 
 on a.brand=b.brand
 ```
+
+下图为explain的截图，**因为多了一步group by,所以当子查询的表重复记录较少的情况下，用join实现子查询性能更高**
+
+![hive left semi join](left_semi_join_explain.png)
